@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using RestSharp;
 using BusBoard.Models;
 using System.Collections;
+using Microsoft.Extensions.Configuration;
 
 namespace BusBoard;
 
@@ -16,12 +17,16 @@ class Program
 {
     static async Task Main(string[] args)
     {
+        IConfigurationRoot config = new ConfigurationBuilder()
+            .AddUserSecrets<Program>()
+            .Build();
+
         var options = new RestClientOptions("https://api.tfl.gov.uk/StopPoint");
 
         var client = new RestClient(options);
         var request = new RestRequest("{id}/Arrivals")
             .AddUrlSegment("id", "490008660N")
-            .AddParameter("app_key", "9335b5c020994e4b867efbed7ca4a091");
+            .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
 
         var response = await client.GetAsync(request);
 
@@ -42,10 +47,9 @@ class Program
 
         for (var i = 0; i < 5; i++)
         {
-            Console.WriteLine(data?[i].LineName);
             DateTime now = TimeZoneInfo.ConvertTimeToUtc(DateTime.Now);
             TimeSpan? timeUntilArrival = data?[i].ExpectedArrival.Subtract(now);
-            Console.WriteLine(timeUntilArrival?.Minutes);
+            Console.WriteLine($"{data?[i].LineName} - arrives in {timeUntilArrival?.Minutes} minutes");
         }
 
     }
