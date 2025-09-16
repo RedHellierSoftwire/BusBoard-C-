@@ -26,7 +26,7 @@ class Program
         string id = Console.ReadLine()!;
 
         // Build and Execute Request
-        RestRequest request = new RestRequest("StopPoint/{id}/placeTypes")
+        RestRequest request = new RestRequest("StopPoint/{id}/Arrivals")
             .AddUrlSegment("id", id)
             .AddParameter("placeTypes", "CarPark")
             .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
