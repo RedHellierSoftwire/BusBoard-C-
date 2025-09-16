@@ -11,6 +11,7 @@ using BusBoard.Models;
 using BusBoard.API;
 using System.Collections;
 using Microsoft.Extensions.Configuration;
+using System.Diagnostics;
 
 namespace BusBoard;
 
@@ -25,31 +26,32 @@ class Program
         Console.WriteLine("Enter Stop Code:");
         string id = Console.ReadLine()!;
 
-        TflAPI tflAPI = new TflAPI();
-        //RestRequestOptions requestOptions =
-        //tflAPI.CreateRequest(RestRequestOptions { RequestRoute: "StopPoint/{id}/Arrivals"})
-
-        var options = new RestClientOptions("https://api.tfl.gov.uk/StopPoint");
-
-        var client = new RestClient(options);
-        var request = new RestRequest("{id}/Arrivals")
+        RestRequest request = new RestRequest("StopPoint/{id}/Arrivals")
             .AddUrlSegment("id", id)
             .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
 
-        RestResponse response = await client.GetAsync(request);
+        TflAPI tflAPI = new(request);
+
+        RestResponse response = await tflAPI.ExecuteGet();
 
         if (!response.IsSuccessStatusCode)
         {
-            Console.WriteLine($"ERROR: {response.ErrorException?.Message}");
+            Debug.WriteLine($"ERROR: {response.ErrorException?.Message} [{response.StatusCode}]");
             return;
         }
 
-        var serializerOptions = new JsonSerializerOptions
+        JsonSerializerOptions serializerOptions = new()
         {
             PropertyNameCaseInsensitive = true
         };
 
-        List<Prediction>? data = JsonSerializer.Deserialize<List<Prediction>>(response.Content!, serializerOptions);
+        List<BusArrivalPrediction>? data = JsonSerializer.Deserialize<List<BusArrivalPrediction>>(response.Content!, serializerOptions);
+
+        if (data is null)
+        {
+            Debug.WriteLine("ERROR: Data could not be Deserialized");
+            return;
+        }
 
         data?.Sort((predictionA, predictionB) => DateTime.Compare(predictionA.ExpectedArrival, predictionB.ExpectedArrival));
 

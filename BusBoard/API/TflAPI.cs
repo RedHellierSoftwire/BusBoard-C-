@@ -13,38 +13,14 @@ public class TflAPI
 
     public RestClient Client { get; }
     public RestRequest? Request { get; set; }
-    public TflAPI(RestRequestOptions? requestOptions = null)
+    public TflAPI(RestRequest? request = null)
     {
         Client = new RestClient(_options);
 
-        if (requestOptions is not null)
+        if (request is not null)
         {
-            CreateRequest(requestOptions);
+            Request = request;
         }
-    }
-
-    public void CreateRequest(RestRequestOptions requestOptions)
-    {
-
-        RestRequest request = new("StopPoint/{id}/Arrivals");
-
-        if (requestOptions.UrlSegments is not null)
-        {
-            foreach (KeyValuePair<string, string> urlSegment in requestOptions.UrlSegments)
-            {
-                request.AddUrlSegment(urlSegment.Key, urlSegment.Value);
-            }
-        }
-
-        if (requestOptions.Parameters is not null)
-        {
-            foreach (KeyValuePair<string, string> parameter in requestOptions.Parameters)
-            {
-                request.AddParameter(parameter.Key, parameter.Value);
-            }
-        }
-
-        Request = request;
     }
 
     public async Task<RestResponse> ExecuteGet()
