@@ -1,5 +1,3 @@
 {
-    "dotnet.defaultSolution": "BusBoard.sln",
-    "omnisharp.enableRoslynAnalyzers": true,
-    "omnisharp.enableEditorConfigSupport": true
+    "dotnet.defaultSolution": "BusBoard.sln"
 }
