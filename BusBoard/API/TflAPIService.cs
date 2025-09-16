@@ -23,7 +23,10 @@ public class TflAPIService
 
     public async Task<List<BusArrivalPrediction>> GetNextNBussesAtStop(string stopId, int n, IConfigurationRoot config)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(n);
+        if (n <= 0)
+        {
+            throw new ArgumentException("n must be greater than 0");
+        }
 
         RestRequest request = new RestRequest("StopPoint/{id}/Arrivals")
             .AddUrlSegment("id", stopId)

@@ -22,15 +22,25 @@ class Program
         // Build and Execute Request
         TflAPIService tflAPI = new();
 
-        List<BusArrivalPrediction> nextFiveBusses = await tflAPI.GetNextNBussesAtStop(id, 12, config);
+        List<BusArrivalPrediction> nextFiveBusses;
+
+        try
+        {
+            nextFiveBusses = await tflAPI.GetNextNBussesAtStop(id, 5, config);
+        }
+        catch (Exception error)
+        {
+            Console.WriteLine($"Error: {error.Message}");
+            return;
+        }
 
         // Print first 5 soonest buses
         nextFiveBusses.ForEach(bus => 
-            {
-                DateTime now = DateTime.UtcNow;
-                TimeSpan timeUntilArrival = bus.ExpectedArrival.Subtract(now);
-                Console.WriteLine($"{bus.LineName} - arrives in {timeUntilArrival.Minutes} minutes");
-            });
+        {
+            DateTime now = DateTime.UtcNow;
+            TimeSpan timeUntilArrival = bus.ExpectedArrival.Subtract(now);
+            Console.WriteLine($"{bus.LineName} - arrives in {timeUntilArrival.Minutes} minutes");
+        });
 
     }
 }
