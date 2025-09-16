@@ -1,27 +1,60 @@
+using System.Diagnostics;
+using System.Text.Json;
+using BusBoard.Models;
+using Microsoft.Extensions.Configuration;
 using RestSharp;
 
 namespace BusBoard.API;
 
 public class TflAPIService
 {
+    private static readonly JsonSerializerOptions _serializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+    
     private readonly RestClientOptions _options = new("https://api.tfl.gov.uk");
 
     public RestClient Client { get; }
-    public RestRequest? Request { get; set; }
-    public TflAPIService(RestRequest? request = null)
+    public TflAPIService()
     {
         Client = new RestClient(_options);
-
-        if (request is not null)
-        {
-            Request = request;
-        }
     }
 
-    public async Task<RestResponse> ExecuteGet()
+    public async Task<List<BusArrivalPrediction>> GetNextNBussesAtStop(string stopId, int n, IConfigurationRoot config)
     {
-        return Request is not null
-            ? await Client.GetAsync(Request) 
-            : throw new Exception("API Request has not been defined");
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(n);
+
+        RestRequest request = new RestRequest("StopPoint/{id}/Arrivals")
+            .AddUrlSegment("id", stopId)
+            .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
+
+        RestResponse response = await Client.GetAsync(request);
+
+        List<BusArrivalPrediction>? data = null;
+
+        try
+        {
+            data = JsonSerializer.Deserialize<List<BusArrivalPrediction>>(response.Content!, _serializerOptions);
+        }
+        catch (Exception error)
+        {
+            throw new Exception(error.Message);
+        }
+
+        if (data is null | data!.Count == 0)
+        {
+            throw new Exception("Data could not be Deserialized");
+        }
+
+        data.Sort((predictionA, predictionB) => DateTime.Compare(predictionA.ExpectedArrival, predictionB.ExpectedArrival));
+
+        if (n >= data.Count)
+        {
+            n = data.Count;
+            Debug.WriteLine($"Only {data.Count} arrivals found, returning all of them.");
+        }
+
+        return [.. data.Take(n)];
     }
 }
