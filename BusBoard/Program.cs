@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using RestSharp;
 using BusBoard.Models;
 using BusBoard.API;
-using System.Collections;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 
@@ -17,8 +9,15 @@ namespace BusBoard;
 
 class Program
 {
+    
+    private static readonly JsonSerializerOptions _serializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+    
     static async Task Main(string[] args)
     {
+        // Load User Secrtes
         IConfigurationRoot config = new ConfigurationBuilder()
             .AddUserSecrets<Program>()
             .Build();
@@ -26,40 +25,48 @@ class Program
         Console.WriteLine("Enter Stop Code:");
         string id = Console.ReadLine()!;
 
-        RestRequest request = new RestRequest("StopPoint/{id}/Arrivals")
+        // Build and Execute Request
+        RestRequest request = new RestRequest("StopPoint/{id}/placeTypes")
             .AddUrlSegment("id", id)
+            .AddParameter("placeTypes", "CarPark")
             .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
 
-        TflAPI tflAPI = new(request);
+        TflAPIService tflAPI = new(request);
 
         RestResponse response = await tflAPI.ExecuteGet();
 
         if (!response.IsSuccessStatusCode)
         {
-            Debug.WriteLine($"ERROR: {response.ErrorException?.Message} [{response.StatusCode}]");
+            Debug.WriteLine($"ERROR: {response.ErrorException?.Message}");
             return;
         }
 
-        JsonSerializerOptions serializerOptions = new()
+        // Deserialize Data
+        List<BusArrivalPrediction>? data = null;
+
+        try
         {
-            PropertyNameCaseInsensitive = true
-        };
+            data = JsonSerializer.Deserialize<List<BusArrivalPrediction>>(response.Content!, _serializerOptions);
+        }
+        catch (Exception error)
+        {
+            Debug.WriteLine($"ERROR: {error.Message}");
+        }
 
-        List<BusArrivalPrediction>? data = JsonSerializer.Deserialize<List<BusArrivalPrediction>>(response.Content!, serializerOptions);
-
-        if (data is null)
+        if (data is null | data!.Count == 0)
         {
             Debug.WriteLine("ERROR: Data could not be Deserialized");
             return;
         }
 
-        data?.Sort((predictionA, predictionB) => DateTime.Compare(predictionA.ExpectedArrival, predictionB.ExpectedArrival));
+        data.Sort((predictionA, predictionB) => DateTime.Compare(predictionA.ExpectedArrival, predictionB.ExpectedArrival));
 
+        // Print first 5 soonest buses
         for (var i = 0; i < 5; i++)
         {
-            DateTime now = TimeZoneInfo.ConvertTimeToUtc(DateTime.Now);
+            DateTime now = DateTime.UtcNow;
             TimeSpan? timeUntilArrival = data?[i].ExpectedArrival.Subtract(now);
-            Console.WriteLine($"{data?[i].LineName} - arrives in {timeUntilArrival?.Minutes} minu");
+            Console.WriteLine($"{data?[i].LineName} - arrives in {timeUntilArrival?.Minutes} minutes");
         }
 
     }
