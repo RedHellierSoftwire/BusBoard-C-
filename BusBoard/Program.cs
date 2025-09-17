@@ -1,6 +1,7 @@
 ﻿using BusBoard.Models;
 using BusBoard.API;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Immutable;
 
 namespace BusBoard;
 
@@ -23,7 +24,8 @@ class Program
 
         try
         {
-            nextBusses = await tflAPI.GetNextBussesAtStop(id, config);
+            ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
+            nextBusses = tflAPI.GetNextBussesAtStop(busArrivalPredictions);
         }
         catch (Exception error)
         {

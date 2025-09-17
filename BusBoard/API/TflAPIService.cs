@@ -45,7 +45,7 @@ public class TflAPIService
 
     }
 
-    public static List<BusArrivalPrediction> GetNextBussesAtStop(ImmutableList<BusArrivalPrediction> predictions, int numberOfBusses = 5)
+    public List<BusArrivalPrediction> GetNextBussesAtStop(ImmutableList<BusArrivalPrediction> predictions, int numberOfBusses = 5)
     {
         if (numberOfBusses <= 0)
         {
