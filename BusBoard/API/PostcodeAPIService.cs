@@ -11,20 +11,14 @@ public class PostcodeAPIService
             PropertyNameCaseInsensitive = true
         };
     
-    private readonly RestClientOptions _options = new("https://api.postcodes.io");
-
-    public RestClient Client { get; }
-    public PostcodeAPIService()
-    {
-        Client = new RestClient(_options);
-    }
+    private readonly APIService _apiService = new("https://api.postcodes.io");
 
     public async Task<PostcodeLatAndLon> GetLatAndLonFromPostcode(string postcode)
     {
         RestRequest request = new RestRequest("postcodes/{postcode}")
             .AddUrlSegment("postcode", postcode);
 
-        RestResponse response = await Client.GetAsync(request);
+        RestResponse response = await _apiService.Client.GetAsync(request);
 
         PostcodeLatAndLon? data;
 

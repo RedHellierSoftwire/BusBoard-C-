@@ -1,5 +1,7 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Linq;
 using BusBoard.Models;
 using Microsoft.Extensions.Configuration;
 using RestSharp;
@@ -12,18 +14,12 @@ public class TflAPIService
         {
             PropertyNameCaseInsensitive = true
         };
-    
-    private readonly RestClientOptions _options = new("https://api.tfl.gov.uk");
 
-    public RestClient Client { get; }
-    public TflAPIService()
-    {
-        Client = new RestClient(_options);
-    }
+    private readonly APIService _apiService = new("https://api.tfl.gov.uk");
 
-    public async Task<List<BusArrivalPrediction>> GetNextNBussesAtStop(string stopId, int n, IConfigurationRoot config)
+    public async Task<List<BusArrivalPrediction>> GetNextBussesAtStop(string stopId, IConfigurationRoot config, int numberOfBusses = 5)
     {
-        if (n <= 0)
+        if (numberOfBusses <= 0)
         {
             throw new ArgumentException("n must be greater than 0");
         }
@@ -32,13 +28,13 @@ public class TflAPIService
             .AddUrlSegment("id", stopId)
             .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
 
-        RestResponse response = await Client.GetAsync(request);
+        RestResponse response = await _apiService.Client.GetAsync(request);
 
-        List<BusArrivalPrediction>? data = null;
+        ImmutableList<BusArrivalPrediction>? data = null;
 
         try
         {
-            data = JsonSerializer.Deserialize<List<BusArrivalPrediction>>(response.Content!, _serializerOptions);
+            data = JsonSerializer.Deserialize<ImmutableList<BusArrivalPrediction>>(response.Content!, _serializerOptions);
         }
         catch (Exception error)
         {
@@ -50,14 +46,14 @@ public class TflAPIService
             throw new Exception("Data could not be Deserialized");
         }
 
-        data.Sort((predictionA, predictionB) => DateTime.Compare(predictionA.ExpectedArrival, predictionB.ExpectedArrival));
-
-        if (n >= data.Count)
+        if (numberOfBusses >= data.Count)
         {
-            n = data.Count;
+            numberOfBusses = data.Count;
             Debug.WriteLine($"Only {data.Count} arrivals found, returning all of them.");
         }
 
-        return [.. data.Take(n)];
+        IOrderedEnumerable<BusArrivalPrediction> orderedData = data.OrderBy(prediction => prediction.ExpectedArrival);
+
+        return [.. orderedData.Take(numberOfBusses)];
     }
 }

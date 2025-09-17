@@ -1,9 +1,6 @@
-﻿using System.Text.Json;
-using RestSharp;
-using BusBoard.Models;
+﻿using BusBoard.Models;
 using BusBoard.API;
 using Microsoft.Extensions.Configuration;
-using System.Diagnostics;
 
 namespace BusBoard;
 
@@ -22,11 +19,11 @@ class Program
         // Build and Execute Request
         TflAPIService tflAPI = new();
 
-        List<BusArrivalPrediction> nextFiveBusses;
+        List<BusArrivalPrediction> nextBusses;
 
         try
         {
-            nextFiveBusses = await tflAPI.GetNextNBussesAtStop(id, 5, config);
+            nextBusses = await tflAPI.GetNextBussesAtStop(id, config);
         }
         catch (Exception error)
         {
@@ -35,7 +32,7 @@ class Program
         }
 
         // Print first 5 soonest buses
-        nextFiveBusses.ForEach(bus => 
+        nextBusses.ForEach(bus => 
         {
             DateTime now = DateTime.UtcNow;
             TimeSpan timeUntilArrival = bus.ExpectedArrival.Subtract(now);
