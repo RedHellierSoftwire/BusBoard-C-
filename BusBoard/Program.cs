@@ -25,7 +25,7 @@ class Program
         try
         {
             ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
-            nextBusses = tflAPI.GetNextBussesAtStop(busArrivalPredictions);
+            nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
         }
         catch (Exception error)
         {
