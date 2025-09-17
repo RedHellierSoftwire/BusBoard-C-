@@ -36,7 +36,7 @@ public class TflAPIService
             throw new Exception(error.Message);
         }
 
-        if (data is null | data!.Count == 0)
+        if (data is null || data!.Count == 0)
         {
             throw new Exception("Data could not be Deserialized");
         }

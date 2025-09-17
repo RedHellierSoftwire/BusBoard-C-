@@ -27,17 +27,22 @@ public class UserInputController
     {
         string postcode = GetStringInputFromUser("Enter Postcode: ");
 
-        if (postcode.Split(" ").Length > 2)
+        if (string.IsNullOrWhiteSpace(postcode))
+        {
+            throw new ArgumentException("Postcode cannot be empty");
+        }
+
+        string[] splitPostcode = postcode.Split(" ");
+
+        // Checks if postcode is of format "AAAA NAA, AAA NAA or AA NAA"
+        bool isCorrectFormatWithSpace = splitPostcode.Length == 2 && splitPostcode[0].Length < 5 && splitPostcode[0].Length > 1 && splitPostcode[1].Length == 3; 
+
+        if (postcode.Split(" ").Length > 2 || !isCorrectFormatWithSpace)
         {
             throw new ArgumentException("Postcode is not valid");
         }
 
         postcode = postcode.Replace(" ", "").ToUpper();
-
-        if (string.IsNullOrWhiteSpace(postcode))
-        {
-            throw new ArgumentException("Postcode cannot be empty");
-        }
 
         if (postcode.Length < 5 || postcode.Length > 7)
         {
