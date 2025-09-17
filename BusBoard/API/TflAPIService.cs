@@ -11,19 +11,14 @@ namespace BusBoard.API;
 public class TflAPIService
 {
     private static readonly JsonSerializerOptions _serializerOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     private readonly APIService _apiService = new("https://api.tfl.gov.uk");
 
-    public async Task<List<BusArrivalPrediction>> GetNextBussesAtStop(string stopId, IConfigurationRoot config, int numberOfBusses = 5)
+    public async Task<ImmutableList<BusArrivalPrediction>> GetBusArrivalPredictionsForStop(string stopId, IConfigurationRoot config)
     {
-        if (numberOfBusses <= 0)
-        {
-            throw new ArgumentException("n must be greater than 0");
-        }
-
         RestRequest request = new RestRequest("StopPoint/{id}/Arrivals")
             .AddUrlSegment("id", stopId)
             .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
@@ -46,13 +41,24 @@ public class TflAPIService
             throw new Exception("Data could not be Deserialized");
         }
 
-        if (numberOfBusses >= data.Count)
+        return data;
+
+    }
+
+    public static List<BusArrivalPrediction> GetNextBussesAtStop(ImmutableList<BusArrivalPrediction> predictions, int numberOfBusses = 5)
+    {
+        if (numberOfBusses <= 0)
         {
-            numberOfBusses = data.Count;
-            Debug.WriteLine($"Only {data.Count} arrivals found, returning all of them.");
+            throw new ArgumentException("Number of Busses must be greater than 0");
         }
 
-        IOrderedEnumerable<BusArrivalPrediction> orderedData = data.OrderBy(prediction => prediction.ExpectedArrival);
+        if (numberOfBusses >= predictions.Count)
+        {
+            numberOfBusses = predictions.Count;
+            Debug.WriteLine($"Only {predictions.Count} arrivals found, returning all of them.");
+        }
+
+        IOrderedEnumerable<BusArrivalPrediction> orderedData = predictions.OrderBy(prediction => prediction.ExpectedArrival);
 
         return [.. orderedData.Take(numberOfBusses)];
     }

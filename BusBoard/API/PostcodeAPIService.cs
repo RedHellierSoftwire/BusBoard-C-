@@ -13,18 +13,18 @@ public class PostcodeAPIService
     
     private readonly APIService _apiService = new("https://api.postcodes.io");
 
-    public async Task<PostcodeLatAndLon> GetLatAndLonFromPostcode(string postcode)
+    public async Task<PostcodeData> GetPostcodeData(string postcode)
     {
         RestRequest request = new RestRequest("postcodes/{postcode}")
             .AddUrlSegment("postcode", postcode);
 
         RestResponse response = await _apiService.Client.GetAsync(request);
 
-        PostcodeLatAndLon? data;
+        PostcodeData? data;
 
         try
         {
-            data = JsonSerializer.Deserialize<PostcodeLatAndLon>(response.Content!, _serializerOptions);
+            data = JsonSerializer.Deserialize<PostcodeData>(response.Content!, _serializerOptions);
         }
         catch (Exception error)
         {
