@@ -27,6 +27,11 @@ public class UserInputController
     {
         string postcode = GetStringInputFromUser("Enter Postcode: ");
 
+        if (postcode.Split(" ").Length > 2)
+        {
+            throw new ArgumentException("Postcode is not valid");
+        }
+
         postcode = postcode.Replace(" ", "").ToUpper();
 
         if (string.IsNullOrWhiteSpace(postcode))
