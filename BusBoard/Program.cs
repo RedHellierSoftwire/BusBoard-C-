@@ -15,13 +15,8 @@ class Program
             .AddUserSecrets<Program>()
             .Build();
 
-
-        // TO BE REMOVED
-        Console.WriteLine("Enter Stop Code:");
-        string id = Console.ReadLine()!;
-
-        UserInputController userInput = new();
-        string postcode = userInput.GetPostcodeFromUser();
+        //UserInputController userInput = new();
+        //string postcode = userInput.GetPostcodeFromUser();
 
         // Build and Execute Request
         TflAPIService tflAPI = new();
@@ -29,13 +24,51 @@ class Program
 
         List<BusArrivalPrediction> nextBusses;
 
+        PostcodeData postcodeData;
+
         try
         {
-            PostcodeData postcodeData = await postcodeAPI.GetPostcodeData(postcode);
+            postcodeData = await postcodeAPI.GetPostcodeData("N88NS");
             Console.WriteLine($"Region: {postcodeData.Region}, Latitude: {postcodeData.Latitude}, Longitude: {postcodeData.Longitude}");
+
+            if (postcodeData.Region != "London")
+            {
+                Console.WriteLine("Please Enter a London Postcode");
+                return;
+            }
+
+            Console.WriteLine("Searching...");
+            StopPointSearchResponse stopPointSearch = await tflAPI.GetStopPointsNearLocation(postcodeData.Latitude, postcodeData.Longitude);
+
+            if (stopPointSearch.StopPoints.Count < 2)
+            {
+                Console.WriteLine("Searching...");
+                stopPointSearch = await tflAPI.GetStopPointsNearLocation(postcodeData.Latitude, postcodeData.Longitude, true);
+
+                if (stopPointSearch.StopPoints.Count == 1)
+                {
+                    Console.WriteLine("Only one stop found near you");
+                }
+                else if (stopPointSearch.StopPoints.Count == 0)
+                {
+                    Console.WriteLine("No stops found near you");
+                    return;
+                }
+            }
+            //ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
+            //nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
+        }
+        catch (Exception error)
+        {
+            Console.WriteLine($"Error: {error.Message}");
             return;
-            ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
-            nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
+        }
+
+        try
+        {
+            StopPointSearchResponse stopPointSearch = await tflAPI.GetStopPointsNearLocation(postcodeData.Latitude, postcodeData.Longitude);
+            Console.WriteLine(stopPointSearch.StopPoints.Count);
+            return;
         }
         catch (Exception error)
         {

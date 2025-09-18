@@ -45,6 +45,40 @@ public class TflAPIService
 
     }
 
+    public async Task<StopPointSearchResponse> GetStopPointsNearLocation(double latitude, double longitude, bool expandSearch = false)
+    {
+        RestRequest request = new RestRequest("/StopPoint")
+            .AddParameter("lat", latitude)
+            .AddParameter("lon", longitude)
+            .AddParameter("stopTypes", "NaptanPublicBusCoachTram")
+            .AddParameter("radius", expandSearch ? 2000 : 500);
+
+        RestResponse response = await _apiService.Client.GetAsync(request);
+
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"Request failed with status code {response.StatusCode}");
+        }
+
+        StopPointSearchResponse? data;
+
+        try
+        {
+            data = JsonSerializer.Deserialize<StopPointSearchResponse>(response.Content!, _serializerOptions);
+        }
+        catch (Exception error)
+        {
+            throw new Exception(error.Message);
+        }
+
+        if (data is null)
+        {
+            throw new Exception("Data could not be Deserialized");
+        }
+
+        return data;
+    }
+
     public List<BusArrivalPrediction> GetNextBusses(ImmutableList<BusArrivalPrediction> predictions, int numberOfBusses = 5)
     {
         if (numberOfBusses <= 0)
