@@ -38,14 +38,14 @@ public partial class UserInputController
 
         postcode = postcode.Replace(" ", "").ToUpper();
 
-        if (!postcodeRegex.IsMatch(postcode))
-        {
-            throw new ArgumentException("Postcode is not valid");
-        }
-
         if (postcode.Length < 5 || postcode.Length > 7)
         {
             throw new ArgumentException("Postcode must be between 5 and 7 characters long");
+        }
+
+        if (!postcodeRegex.IsMatch(postcode))
+        {
+            throw new ArgumentException("Postcode is not valid");
         }
 
         return postcode;
