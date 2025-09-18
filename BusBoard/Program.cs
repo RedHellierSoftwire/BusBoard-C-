@@ -2,6 +2,7 @@
 using BusBoard.API;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Immutable;
+using BusBoard.Controllers;
 
 namespace BusBoard;
 
@@ -14,16 +15,24 @@ class Program
             .AddUserSecrets<Program>()
             .Build();
 
+
+        // TO BE REMOVED
         Console.WriteLine("Enter Stop Code:");
         string id = Console.ReadLine()!;
 
+        UserInputController userInput = new();
+        string postcode = userInput.GetPostcodeFromUser();
+
         // Build and Execute Request
         TflAPIService tflAPI = new();
+        PostcodeAPIService postcodeAPI = new();
 
         List<BusArrivalPrediction> nextBusses;
 
         try
         {
+            PostcodeData postcodeData = await postcodeAPI.GetPostcodeData(postcode);
+            Console.WriteLine($"Postcode: {postcodeData.Region}, Latitude: {postcodeData.Latitude}, Longitude: {postcodeData.Longitude}");
             ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
             nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
         }

@@ -1,6 +1,8 @@
+using System.Text.RegularExpressions;
+
 namespace BusBoard.Controllers;
 
-public class UserInputController
+public partial class UserInputController
 {
     public string GetStringInputFromUser(string prompt)
     {
@@ -32,17 +34,14 @@ public class UserInputController
             throw new ArgumentException("Postcode cannot be empty");
         }
 
-        string[] splitPostcode = postcode.Split(" ");
+        Regex postcodeRegex = MyRegex();
 
-        // Checks if postcode is of format "AAAA NAA, AAA NAA or AA NAA"
-        bool isCorrectFormatWithSpace = splitPostcode.Length == 2 && splitPostcode[0].Length < 5 && splitPostcode[0].Length > 1 && splitPostcode[1].Length == 3; 
+        postcode = postcode.Replace(" ", "").ToUpper();
 
-        if (postcode.Split(" ").Length > 2 || !isCorrectFormatWithSpace)
+        if (!postcodeRegex.IsMatch(postcode))
         {
             throw new ArgumentException("Postcode is not valid");
         }
-
-        postcode = postcode.Replace(" ", "").ToUpper();
 
         if (postcode.Length < 5 || postcode.Length > 7)
         {
@@ -51,4 +50,7 @@ public class UserInputController
 
         return postcode;
     }
+
+    [GeneratedRegex("^([A-Z][A-HJ-Y]?[0-9][A-Z0-9]? ?[0-9][A-Z]{2}|GIR ?0A{2})$", RegexOptions.IgnoreCase, "en-GB")]
+    private static partial Regex MyRegex();
 }

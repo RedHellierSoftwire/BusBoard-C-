@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace BusBoard.Tests;
 
-public class BusBoard_AreSoonestPredictionsReturned
+public class BusBoard_GetNextBusses
 {
     private readonly TflAPIService _tflAPI = new();
 
