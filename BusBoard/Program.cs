@@ -32,7 +32,8 @@ class Program
         try
         {
             PostcodeData postcodeData = await postcodeAPI.GetPostcodeData(postcode);
-            Console.WriteLine($"Postcode: {postcodeData.Region}, Latitude: {postcodeData.Latitude}, Longitude: {postcodeData.Longitude}");
+            Console.WriteLine($"Region: {postcodeData.Region}, Latitude: {postcodeData.Latitude}, Longitude: {postcodeData.Longitude}");
+            return;
             ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
             nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
         }
