@@ -3,6 +3,7 @@ using BusBoard.API;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Immutable;
 using BusBoard.Controllers;
+using System.Diagnostics;
 
 namespace BusBoard;
 
@@ -57,23 +58,40 @@ class Program
             {
                 string id = stopPointSearch.StopPoints[n].NaptanId;
                 string name = stopPointSearch.StopPoints[n].CommonName;
-                Console.WriteLine(Environment.NewLine + $"Stop {n + 1}: {name}");
+                string stopLetter = stopPointSearch.StopPoints[n].StopLetter;
+                Console.WriteLine(Environment.NewLine + $"Stop {stopLetter}: {name}");
 
                 ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
+
+                if (busArrivalPredictions.Count == 0)
+                {
+                    Console.WriteLine("No arrivals for this stop");
+                    continue;
+                }
                 List<BusArrivalPrediction> nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
+                
 
                 // Print first 5 soonest buses
                 nextBusses.ForEach(bus =>
                 {
                     DateTime now = DateTime.UtcNow;
-                    TimeSpan timeUntilArrival = bus.ExpectedArrival.Subtract(now);
-                    Console.WriteLine($"{bus.LineName} - arrives in {timeUntilArrival.Minutes} minutes");
+                    int minutesAway = bus.ExpectedArrival.Subtract(now).Minutes;
+                    string displayString = bus.LineName;
+                    if (minutesAway == 0)
+                    {
+                        displayString += " - due";
+                    }
+                    else
+                    {
+                        displayString += $" - {minutesAway} minute{(minutesAway == 1 ? "" : "s")}";
+                    }
+                    Console.WriteLine(displayString);
                 });
             }
         }
         catch (Exception error)
         {
-            Console.WriteLine($"Error: {error.Message}");
+            Debug.WriteLine(error.Message);
             return;
         }
 

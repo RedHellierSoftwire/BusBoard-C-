@@ -33,12 +33,12 @@ public class TflAPIService
         }
         catch (Exception error)
         {
-            throw new Exception(error.Message);
+            throw new Exception($"Error: Could not retrieve Arrival data: {error.GetType} - {error.Message}");
         }
 
-        if (data is null || data!.Count == 0)
+        if (data is null)
         {
-            throw new Exception("Data could not be Deserialized");
+            throw new Exception("Error: Could not retrieve Arrival data - Data could not be Deserialized");
         }
 
         return data;
@@ -68,12 +68,12 @@ public class TflAPIService
         }
         catch (Exception error)
         {
-            throw new Exception(error.Message);
+            throw new Exception($"Error: Could not retrieve Stop data: {error.GetType} - {error.Message}");
         }
 
         if (data is null)
         {
-            throw new Exception("Data could not be Deserialized");
+            throw new Exception("Error: Could not retrieve Stop data - Data could not be Deserialized");
         }
 
         return data;

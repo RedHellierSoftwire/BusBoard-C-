@@ -2,6 +2,7 @@ using BusBoard.Models;
 using RestSharp;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Net;
 //using System.Text.Json;
 namespace BusBoard.API;
 
@@ -18,6 +19,11 @@ public class PostcodeAPIService
 
         if (!response.IsSuccessful)
         {
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new Exception("Error: Postcode not found");
+            }
+            
             throw new Exception($"Request failed with status code {response.StatusCode}");
         }
 
@@ -31,12 +37,12 @@ public class PostcodeAPIService
         }
         catch (Exception error)
         {
-            throw new Exception(error.Message);
+            throw new Exception($"Error: Could not retrieve postcode data: {error.GetType} - {error.Message}");
         }
 
         if (data is null)
         {
-            throw new Exception("Data could not be Deserialized");
+            throw new Exception("Error: Could not retrieve postcode data - Data could not be Deserialized");
         }
 
         return data;
