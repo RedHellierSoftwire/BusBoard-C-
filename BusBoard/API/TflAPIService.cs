@@ -86,7 +86,7 @@ public class TflAPIService
             throw new ArgumentException("Number of Busses must be greater than 0");
         }
 
-        if (numberOfBusses >= predictions.Count)
+        if (numberOfBusses > predictions.Count)
         {
             numberOfBusses = predictions.Count;
             Debug.WriteLine($"Only {predictions.Count} arrivals found, returning all of them.");

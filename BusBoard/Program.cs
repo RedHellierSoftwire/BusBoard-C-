@@ -15,21 +15,16 @@ class Program
             .AddUserSecrets<Program>()
             .Build();
 
-        //UserInputController userInput = new();
-        //string postcode = userInput.GetPostcodeFromUser();
-
-        // Build and Execute Request
+        
+        UserInputController userInput = new();
         TflAPIService tflAPI = new();
         PostcodeAPIService postcodeAPI = new();
 
-        List<BusArrivalPrediction> nextBusses;
-
-        PostcodeData postcodeData;
-
         try
         {
-            postcodeData = await postcodeAPI.GetPostcodeData("N88NS");
-            Console.WriteLine($"Region: {postcodeData.Region}, Latitude: {postcodeData.Latitude}, Longitude: {postcodeData.Longitude}");
+            string postcode = userInput.GetPostcodeFromUser();
+
+            PostcodeData postcodeData = await postcodeAPI.GetPostcodeData(postcode);
 
             if (postcodeData.Region != "London")
             {
@@ -55,34 +50,32 @@ class Program
                     return;
                 }
             }
-            //ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
-            //nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
+
+            Console.WriteLine(Environment.NewLine + "Finding Next Bus Arrival Times...");
+
+            for (int n = 0; n < 2; n++)
+            {
+                string id = stopPointSearch.StopPoints[n].NaptanId;
+                string name = stopPointSearch.StopPoints[n].CommonName;
+                Console.WriteLine(Environment.NewLine + $"Stop {n + 1}: {name}");
+
+                ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
+                List<BusArrivalPrediction> nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
+
+                // Print first 5 soonest buses
+                nextBusses.ForEach(bus =>
+                {
+                    DateTime now = DateTime.UtcNow;
+                    TimeSpan timeUntilArrival = bus.ExpectedArrival.Subtract(now);
+                    Console.WriteLine($"{bus.LineName} - arrives in {timeUntilArrival.Minutes} minutes");
+                });
+            }
         }
         catch (Exception error)
         {
             Console.WriteLine($"Error: {error.Message}");
             return;
         }
-
-        try
-        {
-            StopPointSearchResponse stopPointSearch = await tflAPI.GetStopPointsNearLocation(postcodeData.Latitude, postcodeData.Longitude);
-            Console.WriteLine(stopPointSearch.StopPoints.Count);
-            return;
-        }
-        catch (Exception error)
-        {
-            Console.WriteLine($"Error: {error.Message}");
-            return;
-        }
-
-        // Print first 5 soonest buses
-        nextBusses.ForEach(bus => 
-        {
-            DateTime now = DateTime.UtcNow;
-            TimeSpan timeUntilArrival = bus.ExpectedArrival.Subtract(now);
-            Console.WriteLine($"{bus.LineName} - arrives in {timeUntilArrival.Minutes} minutes");
-        });
 
     }
 }

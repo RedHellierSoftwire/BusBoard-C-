@@ -7,11 +7,6 @@ namespace BusBoard.API;
 
 public class PostcodeAPIService
 {
-    // private static readonly JsonSerializerOptions _serializerOptions = new()
-    // {
-    //     PropertyNameCaseInsensitive = true
-    // };
-
     private readonly APIService _apiService = new("https://api.postcodes.io");
 
     public async Task<PostcodeData> GetPostcodeData(string postcode)
