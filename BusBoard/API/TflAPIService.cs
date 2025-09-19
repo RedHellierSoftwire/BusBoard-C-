@@ -17,8 +17,12 @@ public class TflAPIService
 
     private readonly APIService _apiService = new("https://api.tfl.gov.uk");
 
-    public async Task<ImmutableList<BusArrivalPrediction>> GetBusArrivalPredictionsForStop(string stopId, IConfigurationRoot config)
+    public async Task<ImmutableList<BusArrivalPrediction>> GetBusArrivalPredictionsForStop(string stopId)
     {
+        IConfigurationRoot config = new ConfigurationBuilder()
+            .AddUserSecrets<Program>()
+            .Build();
+        
         RestRequest request = new RestRequest("StopPoint/{id}/Arrivals")
             .AddUrlSegment("id", stopId)
             .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);

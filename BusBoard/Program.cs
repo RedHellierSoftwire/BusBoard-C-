@@ -61,7 +61,7 @@ class Program
                 string stopLetter = stopPointSearch.StopPoints[n].StopLetter;
                 Console.WriteLine(Environment.NewLine + $"Stop {stopLetter}: {name}");
 
-                ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id, config);
+                ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id);
 
                 if (busArrivalPredictions.Count == 0)
                 {

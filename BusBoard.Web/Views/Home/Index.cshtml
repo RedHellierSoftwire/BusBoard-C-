@@ -1,8 +1,30 @@
-﻿@{
+﻿@model BusBoard.Web.Models.PostcodeInput;
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div>
+    <h1>Bus Board</h1>
+</div>
+
+<div>
+    @using (Html.BeginForm("BusBoard","Home", FormMethod.Get)) 
+    {
+        <fieldset>
+            <legend>Find the next busses near you</legend>
+            <div>
+                <label for="postcode">Enter you postcode:</label>
+                @Html.TextBoxFor(m => m.Postcode)
+            </div>
+            <div>
+                <button type="submit">Submit</button>
+            </div>
+        </fieldset>
+    }
+
+    @if (Model != null)
+    {
+        <p>@Model.Postcode</p>
+    }
 </div>
