@@ -36,7 +36,7 @@ public class PostcodeAPIService
         }
         catch (Exception error)
         {
-            throw; // new Exception($"Error: Could not retrieve postcode data: {error.GetType} - {error.Message}");
+            throw new Exception($"Error: Could not retrieve postcode data: {error.GetType} - {error.Message}");
         }
 
         if (data is null)
