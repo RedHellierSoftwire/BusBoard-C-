@@ -53,7 +53,7 @@ class Program
             Console.WriteLine(Environment.NewLine + "Finding Next Bus Arrival Times...");
             
             Task.WaitAll([.. stopPointSearch.StopPoints.Take(2).Select(stopPoint => 
-                BusArrivalsController.PrintNextBusArrivalsInformation(stopPoint, tflAPI, config))]);
+                BusArrivalsController.PrintNextBusArrivalsInformation(stopPoint, tflAPI))]);
         }
         catch (Exception error)
         {

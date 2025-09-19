@@ -5,6 +5,7 @@ using BusBoard.Web.Models;
 using BusBoard.API;
 using BusBoard.Models;
 using System.Collections.Immutable;
+using BusBoard.Controllers;
 
 namespace BusBoard.Web.Controllers;
 
@@ -41,12 +42,12 @@ public class HomeController : Controller
                 return View(returnView);
             }
 
-            Console.WriteLine("Searching...");
+            Console.WriteLine("Searching for nearby stops...");
             StopPointSearchResponse stopPointSearch = await tflAPI.GetStopPointsNearLocation(postcodeData.Latitude, postcodeData.Longitude);
 
             if (stopPointSearch.StopPoints.Count < 2)
             {
-                Console.WriteLine("Searching...");
+                Console.WriteLine("Searching for nearby stops...");
                 stopPointSearch = await tflAPI.GetStopPointsNearLocation(postcodeData.Latitude, postcodeData.Longitude, true);
 
                 if (stopPointSearch.StopPoints.Count == 1)
@@ -55,49 +56,18 @@ public class HomeController : Controller
                 }
                 else if (stopPointSearch.StopPoints.Count == 0)
                 {
+                    Console.WriteLine("No stops found near you");
                     returnView.Postcode = "No stops found near you";
-                    
                     return View(returnView);
                 }
             }
 
             Console.WriteLine(Environment.NewLine + "Finding Next Bus Arrival Times...");
 
-            for (int n = 0; n < 2; n++)
-            {
-                string id = stopPointSearch.StopPoints[n].NaptanId;
-                string name = stopPointSearch.StopPoints[n].CommonName;
-                string stopLetter = stopPointSearch.StopPoints[n].StopLetter;
-                Console.WriteLine(Environment.NewLine + $"Stop {stopLetter}: {name}");
+            // Task.WaitAll([.. stopPointSearch.StopPoints.Take(2).Select(stopPoint =>
+            //     BusArrivalsController.PrintNextBusArrivalsInformation(stopPoint, tflAPI))]);
 
-                ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(id);
-
-                if (busArrivalPredictions.Count == 0)
-                {
-                    Console.WriteLine("No arrivals for this stop");
-                    continue;
-                }
-                List<BusArrivalPrediction> nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
-
-
-                // Print first 5 soonest buses
-                nextBusses.ForEach(bus =>
-                {
-                    DateTime now = DateTime.UtcNow;
-                    int minutesAway = bus.ExpectedArrival.Subtract(now).Minutes;
-                    string displayString = bus.LineName;
-                    if (minutesAway == 0)
-                    {
-                        displayString += " - due";
-                    }
-                    else
-                    {
-                        displayString += $" - {minutesAway} minute{(minutesAway == 1 ? "" : "s")}";
-                    }
-                    Console.WriteLine(displayString);
-                });
-            }
-
+            returnView.Postcode = "busses found";
             return View(returnView);
         }
         catch (Exception error)

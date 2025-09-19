@@ -26,9 +26,9 @@ public static class BusArrivalsController
         return [.. orderedData.Take(numberOfBusses)];
     }
 
-    public static async Task PrintNextBusArrivalsInformation(StopPoint stopPoint, TflAPIService tflAPI, IConfigurationRoot config)
+    public static async Task PrintNextBusArrivalsInformation(StopPoint stopPoint, TflAPIService tflAPI)
     {
-        ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(stopPoint.NaptanId, config);
+        ImmutableList<BusArrivalPrediction> busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(stopPoint.NaptanId);
 
         Console.WriteLine(Environment.NewLine + $"Stop {stopPoint.StopLetter}: {stopPoint.CommonName}");
 

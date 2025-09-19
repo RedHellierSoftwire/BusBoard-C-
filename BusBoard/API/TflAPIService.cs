@@ -15,15 +15,15 @@ public class TflAPIService
 
     private readonly RestClient _client = new("https://api.tfl.gov.uk");
 
-    public async Task<ImmutableList<BusArrivalPrediction>> GetBusArrivalPredictionsForStop(string stopId)
-    {
-        IConfigurationRoot config = new ConfigurationBuilder()
+    private readonly IConfigurationRoot _config = new ConfigurationBuilder()
             .AddUserSecrets<Program>()
             .Build();
-        
+
+    public async Task<ImmutableList<BusArrivalPrediction>> GetBusArrivalPredictionsForStop(string stopId)
+    {
         RestRequest request = new RestRequest("StopPoint/{id}/Arrivals")
             .AddUrlSegment("id", stopId)
-            .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
+            .AddParameter("app_key", _config["BusBoard:TFLAPI_KEY"]);
 
         RestResponse response = await _client.GetAsync(request);
 
@@ -52,7 +52,8 @@ public class TflAPIService
             .AddParameter("lat", latitude)
             .AddParameter("lon", longitude)
             .AddParameter("stopTypes", "NaptanPublicBusCoachTram")
-            .AddParameter("radius", expandSearch ? 2000 : 500);
+            .AddParameter("radius", expandSearch ? 2000 : 500)
+            .AddParameter("app_key", _config["BusBoard:TFLAPI_KEY"]);
 
         RestResponse response = await _client.GetAsync(request);
 
