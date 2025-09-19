@@ -57,7 +57,7 @@ class Program
         }
         catch (Exception error)
         {
-            Debug.WriteLine(error.Message);
+            Console.WriteLine(error.Message);
             return;
         }
 

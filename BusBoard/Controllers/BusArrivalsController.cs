@@ -38,7 +38,7 @@ public static class BusArrivalsController
         }
 
         List<BusArrivalPrediction> nextBusses = GetNextBusses(busArrivalPredictions);
-        
+
         nextBusses.ForEach(PrintBusArrivalInformation);
     }
 
@@ -46,7 +46,13 @@ public static class BusArrivalsController
     {
         DateTime now = DateTime.UtcNow;
         int minutesAway = bus.ExpectedArrival.Subtract(now).Minutes;
-        string displayString = bus.LineName;
+        string displayString = GetBusArrivalDisplayString(bus.LineName, minutesAway);
+        Console.WriteLine(displayString);
+    }
+
+    public static string GetBusArrivalDisplayString(string lineName, int minutesAway)
+    {
+        string displayString = lineName;
         if (minutesAway == 0)
         {
             displayString += " - due";
@@ -55,6 +61,7 @@ public static class BusArrivalsController
         {
             displayString += $" - {minutesAway} minute{(minutesAway == 1 ? "" : "s")}";
         }
-        Console.WriteLine(displayString);
+
+        return displayString;
     }
 }
