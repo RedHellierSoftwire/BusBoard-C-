@@ -78,22 +78,4 @@ public class TflAPIService
 
         return data;
     }
-
-    public List<BusArrivalPrediction> GetNextBusses(ImmutableList<BusArrivalPrediction> predictions, int numberOfBusses = 5)
-    {
-        if (numberOfBusses <= 0)
-        {
-            throw new ArgumentException("Number of Busses must be greater than 0");
-        }
-
-        if (numberOfBusses > predictions.Count)
-        {
-            numberOfBusses = predictions.Count;
-            Debug.WriteLine($"Only {predictions.Count} arrivals found, returning all of them.");
-        }
-
-        IOrderedEnumerable<BusArrivalPrediction> orderedData = predictions.OrderBy(prediction => prediction.ExpectedArrival);
-
-        return [.. orderedData.Take(numberOfBusses)];
-    }
 }

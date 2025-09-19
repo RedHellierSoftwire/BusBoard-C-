@@ -15,15 +15,14 @@ class Program
         IConfigurationRoot config = new ConfigurationBuilder()
             .AddUserSecrets<Program>()
             .Build();
-
         
-        UserInputController userInput = new();
         TflAPIService tflAPI = new();
         PostcodeAPIService postcodeAPI = new();
 
         try
         {
-            string postcode = userInput.GetPostcodeFromUser();
+            string postcode = UserInputController.GetStringInputFromUser("Enter Postcode: ");
+            postcode = UserInputController.ValidatePostcodeFromUser(postcode);
 
             PostcodeData postcodeData = await postcodeAPI.GetPostcodeData(postcode);
 
@@ -68,7 +67,7 @@ class Program
                     Console.WriteLine("No arrivals for this stop");
                     continue;
                 }
-                List<BusArrivalPrediction> nextBusses = tflAPI.GetNextBusses(busArrivalPredictions);
+                List<BusArrivalPrediction> nextBusses = BusArrivalsController.GetNextBusses(busArrivalPredictions);
                 
 
                 // Print first 5 soonest buses

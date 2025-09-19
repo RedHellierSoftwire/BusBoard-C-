@@ -2,16 +2,16 @@ using System.Text.RegularExpressions;
 
 namespace BusBoard.Controllers;
 
-public partial class UserInputController
+public static partial class UserInputController
 {
-    public string GetStringInputFromUser(string prompt)
+    public static string GetStringInputFromUser(string prompt)
     {
         Console.Write(prompt);
         string postcode = Console.ReadLine()!;
         return postcode;
     }
 
-    public int GetIntInputFromUser(string prompt)
+    public static int GetIntInputFromUser(string prompt)
     {
         Console.Write(prompt);
         try
@@ -25,16 +25,14 @@ public partial class UserInputController
         }
     }
 
-    public string GetPostcodeFromUser()
+    public static string ValidatePostcodeFromUser(string postcode)
     {
-        string postcode = GetStringInputFromUser("Enter Postcode: ");
-
         if (string.IsNullOrWhiteSpace(postcode))
         {
             throw new ArgumentException("Postcode cannot be empty");
         }
 
-        Regex postcodeRegex = MyRegex();
+        Regex postcodeRegex = PostcodeRegex();
 
         postcode = postcode.Replace(" ", "").ToUpper();
 
@@ -52,5 +50,5 @@ public partial class UserInputController
     }
 
     [GeneratedRegex("^([A-Z][A-HJ-Y]?[0-9][A-Z0-9]? ?[0-9][A-Z]{2}|GIR ?0A{2})$", RegexOptions.IgnoreCase, "en-GB")]
-    private static partial Regex MyRegex();
+    private static partial Regex PostcodeRegex();
 }

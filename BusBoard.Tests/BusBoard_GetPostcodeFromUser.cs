@@ -1,46 +1,32 @@
 using Xunit;
-using BusBoard.API;
 using BusBoard.Controllers;
-using BusBoard.Models;
-using System.Collections.Immutable;
 
 namespace BusBoard.Tests;
 
 public class BusBoard_GetPostcodeFromUser
 {
-    private readonly UserInputController _userInput = new();
-
     [Theory]
-    [InlineData("AA11 1AA")]
-    [InlineData("AA1A 1AA")]
-    [InlineData("AA1 1AA")]
-    [InlineData("A1 1AA")]
-    [InlineData("AA1A1AA")]
-    [InlineData("AA11AA")]
-    [InlineData("A11AA")]
-    [InlineData("aa1a 1aa")]
-    [InlineData("aa1 1aa")]
-    [InlineData("a1 1aa")]
-    [InlineData("aa11aa")]
-    [InlineData("a11aa")]
-    [InlineData("AA111aA")]
-    [InlineData("AA1a1Aa")]
-    public void GetPostcodeFromUser_ValidPostcodeInput_ReturnsFormattedPostcode(string input)
+    [InlineData("AA11 1AA","AA111AA")]
+    [InlineData("AA1A 1AA","AA1A1AA")]
+    [InlineData("AA1 1AA","AA11AA")]
+    [InlineData("A1 1AA","A11AA")]
+    [InlineData("AA1A1AA","AA1A1AA")]
+    [InlineData("AA11AA","AA11AA")]
+    [InlineData("A11AA","A11AA")]
+    [InlineData("aa1a 1aa","AA1A1AA")]
+    [InlineData("aa1 1aa","AA11AA")]
+    [InlineData("a1 1aa","AA111AA")]
+    [InlineData("aa11aa","AA111AA")]
+    [InlineData("a11aa","A11AA")]
+    [InlineData("AA111aA","AA111AA")]
+    [InlineData("AA1a1Aa","AA1A1AA")]
+    public void GetPostcodeFromUser_ValidPostcodeInput_ReturnsFormattedPostcode(string input, string expectedOutput)
     {
-        // Arrange
-        MemoryStream inputStream = new();
-        StreamWriter writer = new(inputStream);
-        writer.WriteLine(input);
-        writer.Flush();
-        inputStream.Position = 0;
-        using var reader = new StreamReader(inputStream);
-        Console.SetIn(reader);
-
         // Act
-        var result = _userInput.GetPostcodeFromUser();
+        var result = UserInputController.ValidatePostcodeFromUser(input);
 
         // Assert
-        Assert.Equal(input.Replace(" ", "").ToUpper(), result);
+        Assert.Equal(expectedOutput, result);
     }
 
     [Theory]
@@ -56,16 +42,7 @@ public class BusBoard_GetPostcodeFromUser
     [InlineData("AAAA1AA")]
     public void GetPostcodeFromUser_InvalidPostcodeInput_ThrowsArgumentException(string input)
     {
-        // Arrange
-        MemoryStream inputStream = new();
-        StreamWriter writer = new(inputStream);
-        writer.WriteLine(input);
-        writer.Flush();
-        inputStream.Position = 0;
-        using var reader = new StreamReader(inputStream);
-        Console.SetIn(reader);
-
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => _userInput.GetPostcodeFromUser());
+        Assert.Throws<ArgumentException>(() => UserInputController.ValidatePostcodeFromUser(input));
     }
 }
