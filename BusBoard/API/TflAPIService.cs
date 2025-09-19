@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Text.Json;
 using BusBoard.Models;
 using Microsoft.Extensions.Configuration;
@@ -9,55 +9,70 @@ namespace BusBoard.API;
 public class TflAPIService
 {
     private static readonly JsonSerializerOptions _serializerOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
-    
-    private readonly RestClientOptions _options = new("https://api.tfl.gov.uk");
-
-    public RestClient Client { get; }
-    public TflAPIService()
     {
-        Client = new RestClient(_options);
-    }
+        PropertyNameCaseInsensitive = true
+    };
 
-    public async Task<List<BusArrivalPrediction>> GetNextNBussesAtStop(string stopId, int n, IConfigurationRoot config)
+    private readonly RestClient _client = new("https://api.tfl.gov.uk");
+
+    public async Task<ImmutableList<BusArrivalPrediction>> GetBusArrivalPredictionsForStop(string stopId, IConfigurationRoot config)
     {
-        if (n <= 0)
-        {
-            throw new ArgumentException("n must be greater than 0");
-        }
-
         RestRequest request = new RestRequest("StopPoint/{id}/Arrivals")
             .AddUrlSegment("id", stopId)
             .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
 
-        RestResponse response = await Client.GetAsync(request);
+        RestResponse response = await _client.GetAsync(request);
 
-        List<BusArrivalPrediction>? data = null;
+        ImmutableList<BusArrivalPrediction>? data = null;
 
         try
         {
-            data = JsonSerializer.Deserialize<List<BusArrivalPrediction>>(response.Content!, _serializerOptions);
+            data = JsonSerializer.Deserialize<ImmutableList<BusArrivalPrediction>>(response.Content!, _serializerOptions);
         }
         catch (Exception error)
         {
-            throw new Exception(error.Message);
+            throw new Exception($"Error: Could not retrieve Arrival data: {error.GetType} - {error.Message}");
         }
 
-        if (data is null | data!.Count == 0)
+        if (data is null)
         {
-            throw new Exception("Data could not be Deserialized");
+            throw new Exception("Error: Could not retrieve Arrival data - Data could not be Deserialized");
         }
 
-        data.Sort((predictionA, predictionB) => DateTime.Compare(predictionA.ExpectedArrival, predictionB.ExpectedArrival));
+        return data;
+    }
 
-        if (n >= data.Count)
+    public async Task<StopPointSearchResponse> GetStopPointsNearLocation(double latitude, double longitude, bool expandSearch = false)
+    {
+        RestRequest request = new RestRequest("/StopPoint")
+            .AddParameter("lat", latitude)
+            .AddParameter("lon", longitude)
+            .AddParameter("stopTypes", "NaptanPublicBusCoachTram")
+            .AddParameter("radius", expandSearch ? 2000 : 500);
+
+        RestResponse response = await _client.GetAsync(request);
+
+        if (!response.IsSuccessful)
         {
-            n = data.Count;
-            Debug.WriteLine($"Only {data.Count} arrivals found, returning all of them.");
+            throw new Exception($"Request failed with status code {response.StatusCode}");
         }
 
-        return [.. data.Take(n)];
+        StopPointSearchResponse? data;
+
+        try
+        {
+            data = JsonSerializer.Deserialize<StopPointSearchResponse>(response.Content!, _serializerOptions);
+        }
+        catch (Exception error)
+        {
+            throw new Exception($"Error: Could not retrieve Stop data: {error.GetType} - {error.Message}");
+        }
+
+        if (data is null)
+        {
+            throw new Exception("Error: Could not retrieve Stop data - Data could not be Deserialized");
+        }
+
+        return data;
     }
 }
