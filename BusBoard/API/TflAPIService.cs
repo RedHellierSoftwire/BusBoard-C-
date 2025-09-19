@@ -1,7 +1,5 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text.Json;
-using System.Linq;
 using BusBoard.Models;
 using Microsoft.Extensions.Configuration;
 using RestSharp;
@@ -15,7 +13,7 @@ public class TflAPIService
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly APIService _apiService = new("https://api.tfl.gov.uk");
+    private readonly RestClient _client = new("https://api.tfl.gov.uk");
 
     public async Task<ImmutableList<BusArrivalPrediction>> GetBusArrivalPredictionsForStop(string stopId, IConfigurationRoot config)
     {
@@ -23,7 +21,7 @@ public class TflAPIService
             .AddUrlSegment("id", stopId)
             .AddParameter("app_key", config["BusBoard:TFLAPI_KEY"]);
 
-        RestResponse response = await _apiService.Client.GetAsync(request);
+        RestResponse response = await _client.GetAsync(request);
 
         ImmutableList<BusArrivalPrediction>? data = null;
 
@@ -42,7 +40,6 @@ public class TflAPIService
         }
 
         return data;
-
     }
 
     public async Task<StopPointSearchResponse> GetStopPointsNearLocation(double latitude, double longitude, bool expandSearch = false)
@@ -53,7 +50,7 @@ public class TflAPIService
             .AddParameter("stopTypes", "NaptanPublicBusCoachTram")
             .AddParameter("radius", expandSearch ? 2000 : 500);
 
-        RestResponse response = await _apiService.Client.GetAsync(request);
+        RestResponse response = await _client.GetAsync(request);
 
         if (!response.IsSuccessful)
         {

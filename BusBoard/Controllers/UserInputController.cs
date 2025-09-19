@@ -7,8 +7,8 @@ public static partial class UserInputController
     public static string GetStringInputFromUser(string prompt)
     {
         Console.Write(prompt);
-        string postcode = Console.ReadLine()!;
-        return postcode;
+        string text = Console.ReadLine()!;
+        return text;
     }
 
     public static int GetIntInputFromUser(string prompt)
