@@ -1,5 +1,5 @@
 ﻿using Xunit;
-using BusBoard.API;
+using BusBoard.Controllers;
 using BusBoard.Models;
 using System.Collections.Immutable;
 
@@ -7,8 +7,6 @@ namespace BusBoard.Tests;
 
 public class BusBoard_GetNextBusses
 {
-    private readonly TflAPIService _tflAPI = new();
-
     private readonly List<BusArrivalPrediction> _listOfPredictions =
     [
         new BusArrivalPrediction("10 mins away", DateTime.UtcNow.AddMinutes(10)),
@@ -20,10 +18,10 @@ public class BusBoard_GetNextBusses
     ];
 
     [Fact]
-    public void SoonestPredictions_InputListOfLength6_ReturnOrderedListOfLength5()
+    public void GetNextBusses_ReturnsCorrectlyOrderedListOf5Busses()
     {
         // Act
-        var result = _tflAPI.GetNextBusses(_listOfPredictions.ToImmutableList());
+        var result = BusArrivalsController.GetNextBusses(_listOfPredictions.ToImmutableList());
 
         // Assert
         Assert.Equal(5, result.Count);
@@ -35,13 +33,13 @@ public class BusBoard_GetNextBusses
     }
 
     [Fact]
-    public void SoonestPredictions_InputTooLargeNumberOfBusses_ReturnOrderedFullList()
+    public void GetNextBusses_ReturnsFullListWhenMoreBussesAreRequestedThanAvailable()
     {
         // Arrange
         int numberOfBusses = 100000;
 
         // Act
-        var result = _tflAPI.GetNextBusses(_listOfPredictions.ToImmutableList(), numberOfBusses);
+        var result = BusArrivalsController.GetNextBusses(_listOfPredictions.ToImmutableList(), numberOfBusses);
 
         // Assert
         Assert.Equal(_listOfPredictions.Count, result.Count);
@@ -50,9 +48,9 @@ public class BusBoard_GetNextBusses
     [Theory]
     [InlineData(0)]
     [InlineData(-5)]
-    public void SoonestPredictions_InputZeroOrNegativeNumberOfBusses_ThrowsArgumentOutOfRange(int numberOfBusses)
+    public void GetNextBusses_ThrowsArgumentExceptionWhenLessThan1BusIsRequested(int numberOfBusses)
     {
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => _tflAPI.GetNextBusses(_listOfPredictions.ToImmutableList(), numberOfBusses));
+        Assert.Throws<ArgumentException>(() => BusArrivalsController.GetNextBusses(_listOfPredictions.ToImmutableList(), numberOfBusses));
     }
 }

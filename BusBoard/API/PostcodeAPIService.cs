@@ -3,19 +3,18 @@ using RestSharp;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
-//using System.Text.Json;
 namespace BusBoard.API;
 
 public class PostcodeAPIService
 {
-    private readonly APIService _apiService = new("https://api.postcodes.io");
+    private readonly RestClient _client = new("https://api.postcodes.io/");
 
     public async Task<PostcodeData> GetPostcodeData(string postcode)
     {
         RestRequest request = new RestRequest("postcodes/{postcode}")
             .AddUrlSegment("postcode", postcode);
 
-        RestResponse response = await _apiService.Client.GetAsync(request);
+        RestResponse response = await _client.GetAsync(request);
 
         if (!response.IsSuccessful)
         {
