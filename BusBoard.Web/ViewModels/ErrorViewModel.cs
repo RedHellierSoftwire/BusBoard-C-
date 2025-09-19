@@ -1,4 +1,4 @@
-namespace BusBoard.Web.Models;
+namespace BusBoard.Web.ViewModels;
 
 public class ErrorViewModel
 {

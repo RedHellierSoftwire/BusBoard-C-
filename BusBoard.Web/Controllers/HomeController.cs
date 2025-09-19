@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using BusBoard.Web.Models;
+using BusBoard.Web.ViewModels;
 
 namespace BusBoard.Web.Controllers;
 
