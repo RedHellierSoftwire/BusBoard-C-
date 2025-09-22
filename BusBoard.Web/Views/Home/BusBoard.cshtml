@@ -1,4 +1,7 @@
-﻿@model BusBoardViewModel
+﻿@using BusBoard.Controllers
+@using BusBoard.Models
+@using BusBoard.Web.Models
+@model BusBoardViewModel
 @{
     ViewData["Title"] = "Busboard";
 }
@@ -24,6 +27,16 @@
 
     @if (Model != null)
     {
-        <p>@Model.Postcode</p>
+        @if (Model.BusBoardEntries?.Count > 0) {
+            <p>Bus Arrival Information Found for Stops Near @Model.Postcode</p>
+            @foreach (BusBoardEntry entry in Model.BusBoardEntries) {
+                <p>Stop @entry.StopLetter - @entry.CommonName</p>
+                @foreach (BusArrivalPrediction arrival in entry.Arrivals) {
+                    <p>@BusArrivalsController.GetBusArrivalDisplayInformation(arrival)</p>
+                }
+            }
+        } else if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
+            <p>@Model.ErrorMessage</p>
+        }
     }
 </div>

@@ -37,15 +37,15 @@ public static class BusArrivalsController
 
         List<BusArrivalPrediction> nextBusses = GetNextBusses(busArrivalPredictions);
 
-        nextBusses.ForEach(PrintBusArrivalInformation);
+        //nextBusses.ForEach(GetBusArrivalDisplayInformation);
     }
 
-    public static void PrintBusArrivalInformation(BusArrivalPrediction bus)
+    public static string GetBusArrivalDisplayInformation(BusArrivalPrediction bus)
     {
         DateTime now = DateTime.UtcNow;
         int minutesAway = bus.ExpectedArrival.Subtract(now).Minutes;
         string displayString = GetBusArrivalDisplayString(bus.LineName, minutesAway);
-        Console.WriteLine(displayString);
+        return displayString;
     }
 
     public static string GetBusArrivalDisplayString(string lineName, int minutesAway)

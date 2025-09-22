@@ -6,6 +6,7 @@ using BusBoard.API;
 using BusBoard.Models;
 using System.Collections.Immutable;
 using BusBoard.Controllers;
+using Microsoft.VisualBasic;
 
 namespace BusBoard.Web.Controllers;
 
@@ -25,55 +26,55 @@ public class HomeController : Controller
 
     public async Task<IActionResult> BusBoard(string postcode)
     {
-        BusBoardViewModel returnView = new(postcode, Array.Empty<BusBoardEntry>());
+        BusBoardViewModel returnView = new(postcode);
 
         TflAPIService tflAPI = new();
         PostcodeAPIService postcodeAPI = new();
 
         try
         {
-
+            postcode = UserInputController.ValidatePostcodeFromUser(postcode);
             PostcodeData postcodeData = await postcodeAPI.GetPostcodeData(postcode);
 
             if (postcodeData.Region != "London")
             {
-                Console.WriteLine("Please Enter a London Postcode");
-                returnView.Postcode = "Please Enter a London Postcode";
+                returnView.ErrorMessage = "Please Enter a London Postcode";
                 return View(returnView);
             }
-
-            Console.WriteLine("Searching for nearby stops...");
             StopPointSearchResponse stopPointSearch = await tflAPI.GetStopPointsNearLocation(postcodeData.Latitude, postcodeData.Longitude);
 
             if (stopPointSearch.StopPoints.Count < 2)
             {
-                Console.WriteLine("Searching for nearby stops...");
                 stopPointSearch = await tflAPI.GetStopPointsNearLocation(postcodeData.Latitude, postcodeData.Longitude, true);
 
                 if (stopPointSearch.StopPoints.Count == 1)
                 {
-                    Console.WriteLine("Only one stop found near you");
+                    returnView.ErrorMessage = "Only one stop found near you";
                 }
                 else if (stopPointSearch.StopPoints.Count == 0)
                 {
-                    Console.WriteLine("No stops found near you");
-                    returnView.Postcode = "No stops found near you";
+                    returnView.ErrorMessage = "No stops found near you";
                     return View(returnView);
                 }
             }
 
-            Console.WriteLine(Environment.NewLine + "Finding Next Bus Arrival Times...");
+            List<BusBoardEntry> busBoardEntries = [];
 
-            // Task.WaitAll([.. stopPointSearch.StopPoints.Take(2).Select(stopPoint =>
-            //     BusArrivalsController.PrintNextBusArrivalsInformation(stopPoint, tflAPI))]);
+            Task.WaitAll([.. stopPointSearch.StopPoints.Take(2).Select(async stopPoint =>
+            {
+                var busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(stopPoint.NaptanId);
+                var nextBusses = BusArrivalsController.GetNextBusses(busArrivalPredictions);
+                busBoardEntries.Add(new BusBoardEntry(stopPoint, nextBusses));
 
-            returnView.Postcode = "busses found";
+            })]);
+
+            returnView.BusBoardEntries = busBoardEntries;
             return View(returnView);
         }
         catch (Exception error)
         {
             Debug.WriteLine(error.Message);
-            returnView.Postcode = error.Message;
+            returnView.ErrorMessage = error.Message;
             return View(returnView);
         }
     }

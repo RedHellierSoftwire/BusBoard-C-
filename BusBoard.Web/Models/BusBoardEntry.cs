@@ -18,4 +18,12 @@ public class BusBoardEntry
         Arrivals = [];
     }
 
+    public BusBoardEntry(StopPoint stopPoint, List<BusArrivalPrediction> arrivals)
+    {
+        NaptanId = stopPoint.NaptanId;
+        CommonName = stopPoint.CommonName;
+        StopLetter = stopPoint.StopLetter;
+        Arrivals = [.. arrivals];
+    }
+
 }
