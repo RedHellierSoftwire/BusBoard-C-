@@ -52,8 +52,11 @@ class Program
 
             Console.WriteLine(Environment.NewLine + "Finding Next Bus Arrival Times...");
             
-            Task.WaitAll([.. stopPointSearch.StopPoints.Take(2).Select(stopPoint => 
-                BusArrivalsController.PrintNextBusArrivalsInformation(stopPoint, tflAPI))]);
+            Task.WaitAll([.. stopPointSearch.StopPoints.Take(2).Select(async stopPoint => {
+                var busArrivalPredictions = await tflAPI.GetBusArrivalPredictionsForStop(stopPoint.NaptanId);
+                BusArrivalsController.PrintNextBusArrivalsInformation(stopPoint, busArrivalPredictions);
+            }
+            )]);
         }
         catch (Exception error)
         {
